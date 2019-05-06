@@ -775,7 +775,7 @@ class ProgramEnrollmentViewPatchTests(APITestCase):
     def setUp(self):
         super(ProgramEnrollmentViewPatchTests, self).setUp()
 
-        program_uuid = '00000000-1111-2222-3333-444444444444'
+        self.program_uuid = '00000000-1111-2222-3333-444444444444'
         self.curriculum_uuid = 'aaaaaaaa-1111-2222-3333-444444444444'
         self.other_curriculum_uuid = 'bbbbbbbb-1111-2222-3333-444444444444'
 
@@ -786,7 +786,7 @@ class ProgramEnrollmentViewPatchTests(APITestCase):
         self.student = UserFactory.create(username='student', password=self.password)
         self.global_staff = GlobalStaffFactory.create(username='global-staff', password=self.password)
         
-        self.client.login(username=global_staff.username, password=self.password)
+        self.client.login(username=self.global_staff.username, password=self.password)
     
     def student_enrollment(self, enrollment_status, external_user_key=None):
         return {
@@ -817,9 +817,10 @@ class ProgramEnrollmentViewPatchTests(APITestCase):
         }]
         user_1 = ProgramEnrollment.objects.filter(external_user_key='user-1')[0]
 
-        self.assertEqual(user_1['status'], 'pending')
+        self.assertEqual(user_1.status, 'pending')
 
         url = reverse('programs_api:v1:program_enrollments', args=[self.program_uuid])
         response = self.client.patch(url, json.dumps(post_data), content_type='application/json')
 
-        self.assertEqual(user_1['status'], 'withdrawn')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(user_1.status, 'withdrawn')
